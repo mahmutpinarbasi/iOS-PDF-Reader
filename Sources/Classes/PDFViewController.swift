@@ -77,7 +77,7 @@ public final class PDFViewController: UIViewController {
     @IBOutlet private var thumbnailCollectionControllerWidth: NSLayoutConstraint!
     
     /// PDF document that should be displayed
-    private var document: PDFDocument!
+    private(set) public var document: PDFDocument!
     
     private var actionStyle = ActionStyle.print
     
