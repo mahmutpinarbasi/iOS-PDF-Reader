@@ -154,7 +154,7 @@ public struct PDFDocument {
             return
         }
         
-        let originalPageRect = page.originalPageRect
+        let originalPageRect = page.originalPageRect.ceiled
         
         let scalingConstant: CGFloat = 240
         let pdfScale = min(scalingConstant/originalPageRect.width, scalingConstant/originalPageRect.height)
@@ -175,24 +175,10 @@ public struct PDFDocument {
         context.saveGState()
         
         // Flip the context so that the PDF page is rendered right side up.
-        let rotationAngle: CGFloat
-        switch page.rotationAngle {
-        case 90:
-            rotationAngle = 270
-            context.translateBy(x: scaledPageSize.width, y: scaledPageSize.height)
-        case 180:
-            rotationAngle = 180
-            context.translateBy(x: 0, y: scaledPageSize.height)
-        case 270:
-            rotationAngle = 90
-            context.translateBy(x: scaledPageSize.width, y: scaledPageSize.height)
-        default:
-            rotationAngle = 0
-            context.translateBy(x: 0, y: scaledPageSize.height)
-        }
-        
-        context.scaleBy(x: 1, y: -1)
-        context.rotate(by: rotationAngle.degreesToRadians)
+        context.translateBy(x: 0.0, y: scaledPageRect.height)
+        context.scaleBy(x: 1.0, y: -1.0)
+        let transform = page.getDrawingTransform(CGPDFBox.mediaBox, rect: scaledPageRect, rotate: 0, preserveAspectRatio: true)
+        context.concatenate(transform)
         
         // Scale the context so that the PDF page is rendered at the correct size for the zoom level.
         context.scaleBy(x: pdfScale, y: pdfScale)
@@ -220,5 +206,14 @@ extension CGPDFPage {
         default:
             return getBoxRect(.mediaBox)
         }
+    }
+}
+
+private extension CGRect {
+    
+    var ceiled: CGRect {
+        let height: CGFloat = ceil(self.height)
+        let width: CGFloat = ceil(self.width)
+        return CGRect(origin: self.origin, size: CGSize(width: width, height: height))
     }
 }
